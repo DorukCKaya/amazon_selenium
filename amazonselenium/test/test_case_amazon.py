@@ -6,8 +6,8 @@ from pages.product_page import ProductPage
 from pages.list_page import ListPage
 from test.base_test import BaseTest
 
-
- """2. Login ekranını açıp, bir kullanıcı ile login olunacak (daha önce siteye üyeliği varsa o olabilir)
+"""1. http://www.amazon.com sitesine gidecek ve anasayfanın açıldığını assertion ile onaylayacak,
+2. Login ekranını açıp, bir kullanıcı ile login olunacak (daha önce siteye üyeliği varsa o olabilir)
 3. Ekranın üstündeki search alanına 'samsung' yazıp ara butonuna tıklanacak,
 4. Gelen sayfada samsung için sonuç bulunduğunu onaylayacak,
 5. Arama sonuçlarından 2. sayfaya tıklayacak ve açılan sayfada 2. sayfanın şu an gösterimde oldugunu onaylayacak,
@@ -28,27 +28,29 @@ class TestCaseAmazon(BaseTest):
         product_page = ProductPage(self.driver)
         list_page = ListPage(self.driver)
 
-        #anasayfanın açıldığını assertion ile onaylar
-        assert self.locator.BASE_URL  == base_page.get_url()
-        #signin sayfasına gider.
+        # anasayfanın açıldığını assertion ile onaylar
+        self.assertIn(self.locator.BASE_URL, base_page.get_url())
+        # signin sayfasına gider.
         home_page.navigate_to_sign_in()
-        #giriş yapar.
+        # giriş yapar.
         sign_in_page.sign_in()
-        #keyword'ü arar.
+        # keyword'ü arar.
         home_page.search_keyword()
-        #keyword'e dair sonuç geldiğini assert ile kontrol eder.
+        # keyword'e dair sonuç geldiğini assert ile kontrol eder.
         search_page.keyword_control()
-        #2. sayfaya gider.
+        # 2. sayfaya gider.
         search_page.navigate_to_second_page()
-        #3. ürünün sayfasına gider.
+        # 2. sayfada olduğunu doğrular.
+        self.assertIn("page=2", search_page.get_url())
+        # 3. ürünün sayfasına gider.
         search_page.navigate_to_third_product()
-        #ürünü listeye ekler.
+        # ürünü listeye ekler.
         product_page.add_to_list()
-        #doğru ürünün listeye eklendiğini assert ile kontrol eder.
-        product_page.is_product_added_to_list()
-        #liste sayfasına gider.
+        # doğru ürünün listeye eklendiğini assert ile kontrol eder.
+        self.assertEqual(product_page.product, base_page.find_element(*self.locator.ITEM_ADDED_TO_CART_TITLE).text, "wrong product")
+        # liste sayfasına gider.
         product_page.navigate_to_list()
-        #ürünü listeden siler.
+        # ürünü listeden siler.
         list_page.remove_product_from_list()
-        #ürünün listeden silindiğini onaylar.
-        list_page.is_item_removed()
+        # ürünün listeden silindiğini onaylar.
+        self.assertEqual("Deleted", base_page.visibility_element(self.locator.DELETED_TEXT).text, "product not deleted")
